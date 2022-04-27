@@ -14,16 +14,20 @@ def modifySurvey(id, data):
     new_survey_description = data['description'].replace(";", "")
     new_survey_questions = data['questions']
     new_survey_expiration_date = data['expired_date'].replace(";", "")
-    if new_survey_expiration_date != '':
-        new_survey_expiration_date = datetime.datetime.strptime(new_survey_expiration_date,"%Y-%m-%d").date()
+    if(new_survey_expiration_date != ''):
+        expired=datetime.datetime.strptime(new_survey_expiration_date, "%Y-%m-%dT%H:%M")
+        time_stamp = int(datetime.datetime.timestamp(expired))
+        new_survey_expiration_date = time_stamp
+    if (new_survey_expiration_date == ''):
+        new_survey_expiration_date = None
     new_survey_visibility = data['visibility'].replace(";", "")
-
     # check survey exists
     email = data['email']
     exists = RetrieveSurveyById.retrieveSurveyById(id, email)
     if (exists == "Error 404, This survey does not exist!"):
         return "survey not exists"
 
+    print("exists: ", exists)
     # Update title, description, expired_date, and visibility in Surveys if any information is changed.
 
     
@@ -44,7 +48,7 @@ def modifySurvey(id, data):
     print(mycursor.rowcount, "record(s) affected for description")
 
     # ----------------Update the expiration date-------------------------
-    if isinstance(new_survey_expiration_date, datetime.date):
+    if (new_survey_expiration_date != exists[3]):
         update_expiraton_date = "UPDATE Surveys SET expired_on = %s WHERE id = %s"
         val = (new_survey_expiration_date, id)
         mycursor.execute(update_expiraton_date, val)
