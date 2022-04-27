@@ -10,7 +10,8 @@ var visible = 'public'
 var final_data = {}
 
 function load_survey(data){
-    let survey_data = JSON.parse(data);
+    let parsed_data = data.replace(/\n/g, "\\n").replace(/\r/g, "\\r").replace(/\t/g, "\\t");
+    survey_data = JSON.parse(parsed_data);
     console.log(Array.isArray(survey_data));
     console.log("Incoming data: ", survey_data)
     let counter = 0
@@ -54,18 +55,30 @@ function load_survey(data){
                 console.log("Current mc question option: ", quesiton_options[i])
                 add_exisitng_mc_option(quesiton_options[i], counter, i)
             }
+          }
+          if (question_type == 'Short Response'){
+            final_data['wr-'+counter.toString()+'-options'] = []
+            let final_data_values = final_data['wr-'+counter.toString()+'-options']
+            final_data_values[0] = question_title
+            final_data_values[1] = question_type
+            final_data_values[2] = 1
+            final_data_values[3] = static_options
+            final_data['wr-'+counter.toString()+'-options'] = final_data_values
+            console.log("Line 65")
+            add_exisitng_wr_option(question_title)
+          }
+          counter++
+
         }
-        counter++
+        
             
     }
-    
-  
-}
+
 
 function add_first_two_existing_mc_options(option1, option2, total_options){
     console.log("current count: ", count)
     document.getElementById("mc").remove();
-    // document.getElementById("wr").remove();
+
   
     const subject = document.querySelector('#question_type');
   
@@ -82,13 +95,10 @@ function add_first_two_existing_mc_options(option1, option2, total_options){
     current_mc_question.insertAdjacentHTML("beforeend", ("<label id=2" + count.toString() + ">b)<form onsubmit='return false;'> <input type='text' value=" + option2 + " id=2" + question_id + "</label>"))
   
     if (total_options == 2){
-      // current_mc_question.insertAdjacentHTML("beforeend", "<button class='button-delete-mc' id='mc-" + count.toString() + "-delete-option' onclick='delete_option(this.id)' role='button'>-</button>")
-
       current_mc_question.insertAdjacentHTML("beforeend", "<button class='button-add-mc' id='mc-" + count.toString() + "-add-option' onclick='add_option(this.id)' role='button'>+</button>")
 
       current_mc_question.insertAdjacentHTML("beforeend", "<button class='button-add-question' onclick='add_question()' id='add-question' role='button'>Add question</button>")
     }
-    
     
     
     mc_options[count] = 2
@@ -97,12 +107,11 @@ function add_first_two_existing_mc_options(option1, option2, total_options){
 
 
 function add_exisitng_question_title(data){
-    // document.getElementById("add-mc").remove();
     document.getElementById("add-question").remove();
     count++
 
     const subject = document.querySelector('#question_type');
-    var head = "<h5>Question " + (count + 1).toString() + ":</h5><form onsubmit='return false;'><input type='text' id='Question_"+ count.toString() + "'name='fname' value='"+ data.toString() +"'><br></form>"
+    var head = "<h5>Question " + (count + 1).toString() + ":</h5><form id='Question_"+count.toString()+"_form' onsubmit='return false;'><input type='text' id='Question_"+ count.toString() + "'name='fname' value='"+ data.toString() +"'><br></form>"
 
     subject.insertAdjacentHTML("beforeend", head)
 
@@ -144,24 +153,53 @@ function add_exisitng_mc_option(option, question_num, current_option){
 
     }
     
-    }
+}
+
+function add_exisitng_wr_option(question_data){
+  console.log("Line 158")
+  // document.getElementById("wr").remove();
+  document.getElementById("mc").remove();
+  const subject = document.querySelector('#question_type');
+  document.getElementById('Question_'+count.toString()+'_form').remove()
+  subject.insertAdjacentHTML("beforeend", "<div id='wr-" + count.toString()+ "'></div>")
+  const current_wr_question = document.querySelector("#wr-" + count.toString());
+  current_wr_question.insertAdjacentHTML("beforeend", "<label for='wr' id='" + count.toString() + "'>Short Response:</label>")
+  current_wr_question.insertAdjacentHTML("beforeend", ("<form id='Question_"+count.toString()+"_form' onsubmit='return false;'> <textarea type='textarea' style='font-size:17px' id='Question_" + count.toString() + "' rows='5' cols='40'>" + question_data + "</textarea><br></form>"))
+  current_wr_question.insertAdjacentHTML("beforeend", "<button class='button-add-question' onclick='add_question()' id='add-question' role='button'>Add question</button>")
+
+  mc_options[count] = 1
+  question_type.push('Short Response');
+}
 
 
 
+function wr(){
+  document.getElementById("wr").remove();
+  document.getElementById("mc").remove();
+  const subject = document.querySelector('#question_type');
+  document.getElementById('Question_'+count.toString()+'_form').remove()
+  subject.insertAdjacentHTML("beforeend", "<div id='wr-" + count.toString()+ "'></div>")
+  const current_wr_question = document.querySelector("#wr-" + count.toString());
+  current_wr_question.insertAdjacentHTML("beforeend", "<label for='wr' id='" + count.toString() + "'>Short Response:</label>")
+  current_wr_question.insertAdjacentHTML("beforeend", ("<form onsubmit='return false;'> <textarea type='textarea' style='font-size:17px' id='Question_" + count.toString() + "' rows='5' cols='40'></textarea><br></form>"))
+  current_wr_question.insertAdjacentHTML("beforeend", "<button class='button-add-question' onclick='add_question()' id='add-question' role='button'>Add question</button>")
+  // Add the new data to final_data
+  final_data['wr-'+(count).toString()+'-options'] = []
+  final_data['wr-'+(count).toString()+'-options'][0] = ''
+  final_data['wr-'+(count).toString()+'-options'][1] = 'Short Response'
+  final_data['wr-'+(count).toString()+'-options'][2] = 1
+  final_data['wr-'+(count).toString()+'-options'][3] = static_options
 
+  mc_options[count] = 1
+  question_type.push('Short Response');
 
-
-
-
-
-
-
+}
 
 
 
 function mc(){
   document.getElementById("mc").remove();
-  // document.getElementById("wr").remove();
+  document.getElementById("wr").remove();
 
   let question_id = count.toString() + "answer' name='mc'><br></form>"
 
@@ -267,24 +305,22 @@ function delete_option(option_id){
 
 function add_question(){
   // document.getElementById("add-mc").remove();
+  // document.getElementById("add-wr").remove();
   document.getElementById("add-question").remove();
   count++
 
   const subject = document.querySelector('#question_type');
-  var head = "<h5>Question " + (count + 1).toString() + ":</h5><form onsubmit='return false;'> <input type='text' id='Question_"+count.toString()+"'" + "name='fname'><br></form>"
+  var head = "<h5>Question " + (count + 1).toString() + ":</h5><form id='Question_"+count.toString()+"_form' onsubmit='return false;'> <input type='text' id='Question_"+count.toString()+"'" + "name='fname'><br></form>"
 
   subject.insertAdjacentHTML("beforeend", head)
 
   subject.insertAdjacentHTML("beforeend", "<button class='button-mc' onclick='mc()' role='button' id='mc'>MC</button>")
 
-  // subject.insertAdjacentHTML("beforeend", "<button class='button-wr' onclick='wr()' role='button' onclick='mc()' id='wr'>WR</button>")
+  subject.insertAdjacentHTML("beforeend", "<button class='button-wr' onclick='wr()' role='button' onclick='mc()' id='wr'>WR</button>")
 
   added_options = ['a', 'b']
   options = ['c)','d)','e)','f)','g)','h)','i)','j)']
 }
-
-
-
 
 
 
@@ -313,44 +349,63 @@ async function publish(){
       for(let i = 0; i <= count ;i++){
         let q = []
         let question_id = 'Question' + '_' + i.toString()
+        console.log("question_id: ", question_id)
         let question_title = document.getElementById(question_id).value
-
-        
+        let current_question_type = question_type[i]
+        console.log("Line 350: ", question_title)
         q.push(question_title)
         q.push(question_type[i])
         let mc_option_list = []
-        
-        for(let v = 0; v < mc_options[i]; v++){
-          console.log("This is V: ", v)
+        if (current_question_type == 'Multiple Choice'){
+          for(let v = 0; v < mc_options[i]; v++){
+            console.log("This is V: ", v)
+            console.log("This is i: ", i)
+            console.log("MC options: ", mc_options)
+            let answer = document.getElementById(((v+1).toString() + i.toString()+'answer')).value
+            if (answer == '' && question_title != '' && v < 2 && mc_option_list.length > 0){
+              alert("\u2022Please include at least two options for question " + (i + 1).toString() + '.\n\n' + '\u2022IF you dont wan\'t to include the question in your survey then please DELETE the question title!')
+              success = false
+              break;
+            }
+            if (answer != '' && question_title != '' && v >= 0){
+              mc_option_list.push(answer.toString())
+              console.log(mc_option_list)
+            }
+            if (question_title == '' && answer != ''){
+              alert("\u2022Please include a question title for question " + (i + 1).toString() + '.\n\n' + '\u2022If you dont wan\'t to include the question in your survey then please DELETE the question options!')
+              success = false
+              break;
+            }
+            if(question_title != '' && answer == '' && mc_option_list.length == 0){
+              console.log("Current question title line 378: ", question_title)
+              alert("\u2022Please include at least two options for question " + (i + 1).toString() + '.\n\n' + '\u2022If you dont wan\'t to include the question in your survey then please DELETE the question title!')
+              success = false
+              break;
+            } 
+          }
+          if (question_title != '' && mc_option_list.length != 0){
+            q.push(mc_option_list)
+            question_list.push(q)
+          }
+        }
+
+        if (current_question_type == 'Short Response'){
           console.log("This is i: ", i)
-          console.log("MC options: ", mc_options)
-          let answer = document.getElementById(((v+1).toString() + i.toString()+'answer')).value
-          if (answer == '' && question_title != '' && v < 2 && mc_option_list.length > 0){
-            alert("\u2022Please include at least two options for question " + (i + 1).toString() + '.\n\n' + '\u2022IF you dont wan\'t to include the question in your survey then please DELETE the question title!')
-            success = false
-            break;
+          if (question_title.toString() == ""){
+            let result = confirm("Are you sure you dont want to fill out Question " + (i+1).toString() +"?")
+            console.log(result)
+            if (result == false) {
+              success = false;
+            }
           }
-          if (answer != '' && question_title != '' && v >= 0){
-            mc_option_list.push(answer.toString())
-            console.log(mc_option_list)
+          if (question_title.toString() != ""){
+            q.push(null)
+            question_list.push(q)
           }
-          if (question_title == '' && answer != ''){
-            alert("\u2022Please include a question title for question " + (i + 1).toString() + '.\n\n' + '\u2022If you dont wan\'t to include the question in your survey then please DELETE the question options!')
-            success = false
-            break;
-          }
-          if(question_title != '' && answer == '' && mc_option_list.length == 0){
-            alert("\u2022Please include at least two options for question " + (i + 1).toString() + '.\n\n' + '\u2022If you dont wan\'t to include the question in your survey then please DELETE the question title!')
-            success = false
-            break;
-          } 
+          
         }
-        if (question_title != '' && mc_option_list.length != 0){
-          q.push(mc_option_list)
-          question_list.push(q)
-        }
-        
       }
+
     }
     if (count == 0){
       let q = []
@@ -363,19 +418,32 @@ async function publish(){
       q.push(question_title)
       q.push(question_type[0])
       let mc_option_list = []
-      for(let i = 0; i < mc_options[0]; i++){
-        let answer = document.getElementById(((i+1).toString() + count.toString()+'answer')).value
-        if (answer == '' && i < 2 && question_title != '' && title != ''){
-          alert("Please include at least two options for question 1.")
-          success = false
-          break;
+      if (question_type == 'Multiple Choice'){
+        for(let i = 0; i < mc_options[0]; i++){
+          let answer = document.getElementById(((i+1).toString() + count.toString()+'answer')).value
+          if (answer == '' && i < 2 && question_title != '' && title != ''){
+            alert("Please include at least two options for question 1.")
+            success = false
+            break;
+          }
+          if (answer != '' && i >= 0){
+            mc_option_list.push(answer)
+          }
         }
-        if (answer != '' && i >= 0){
-          mc_option_list.push(answer)
+        q.push(mc_option_list)
+        question_list.push(q)
+      }
+      if (current_question_type == 'Short Response'){
+        console.log("This is i: ", i)
+        if (question_title.toString() == ""){
+          alert("Please include a question for your ")
+        }
+        if (question_title.toString() != ""){
+          q.push(null)
+          question_list.push(q)
         }
       }
-      q.push(mc_option_list)
-      question_list.push(q)
+      
     }
   }
   if (success == true){
